@@ -1,0 +1,25 @@
+{
+  "name": "dexter-calculations",
+  "version": "1.2.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "preprocess": "./preprocess.sh",
+    "build": "yarn preprocess && webpack --config webpack.config.js && uglifyjs index-mobile.js -o dist/index-mobile.min.js"
+  },
+  "author": "",
+  "dependencies": {
+    "big-integer": "^1.6.48"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-transform-modules-umd": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "babel-jest": "^26.6.1",
+    "babel-loader": "^8.1.0",
+    "jest": "^26.6.1",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0"
+  }
+}
