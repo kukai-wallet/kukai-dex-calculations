@@ -416,7 +416,8 @@ var dexterCalculations = (function (undefined) {
     var tokenPool_ = bigInt.zero;
     var fee = (1000 - Math.floor(feePercent * 10))
     var burn = (1000 - Math.floor(burnPercent * 10))
-    var feeMultiplier = fee * burn
+    var feeAndBurnMultiplier = fee * burn
+    var feeMultiplier = fee * 1000
 
     try {
       tokenIn_ = bigInt(tokenIn);
@@ -427,7 +428,7 @@ var dexterCalculations = (function (undefined) {
     };
     if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
       // Includes variable fee (0.1% for LB, 0.3 for Quipu) and variable burn (0.1% for LB, 0% for Quipu) calculated separatedly: e.g. 0.1% for both:  999/1000 * 999/1000 = 998100/1000000
-      var numerator = bigInt(tokenIn).times(bigInt(xtzPool)).times(bigInt(feeMultiplier));
+      var numerator = bigInt(tokenIn).times(bigInt(xtzPool)).times(bigInt(feeAndBurnMultiplier));
       var denominator = bigInt(tokenPool).times(bigInt(1000000)).add(bigInt(tokenIn).times(bigInt(feeMultiplier)));
       return numerator.divide(denominator);
     } else {
@@ -461,7 +462,8 @@ var dexterCalculations = (function (undefined) {
     var decimals_ = bigInt.zero;  
     var fee = (1000 - Math.floor(feePercent * 10))
     var burn = (1000 - Math.floor(burnPercent * 10))
-    var feeMultiplier = fee * burn
+    var feeAndBurnMultiplier = fee * burn
+    var feeMultiplier = fee * 1000
 
     try {
       xtzOut_ = bigInt(xtzOut);
@@ -477,7 +479,7 @@ var dexterCalculations = (function (undefined) {
       var result =
           tokenPool_.times(xtzOut_)
           .times(bigInt(1000000)).times(Math.pow(10, decimals_))
-          .divide(xtzPool_.times(bigInt(999000)).minus(xtzOut_.times(bigInt(feeMultiplier))).times(Math.pow(10, decimals_)));
+          .divide(xtzPool_.times(bigInt(feeMultiplier)).minus(xtzOut_.times(bigInt(feeAndBurnMultiplier))).times(Math.pow(10, decimals_)));
 
       if (gtZero(result)) {
         return result;
