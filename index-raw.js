@@ -283,11 +283,14 @@ var dexterCalculations = (function (undefined) {
    * @param {(bigInt|number|string)} xtzIn - The amount of XTZ the sender will sell to Dexter in xtzToToken.
    * @param {(bigInt|number|string)} xtzPool - XTZ amount that Dexter holds. Must be greater than zero.
    * @param {(bigInt|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
+   * @param {number} feePercent - A number between 0.0 and 100, denoting the percentage fee that the dex will deduct from the amount sent.
    * @param {number} burnPercent - A number between 0.0 and 100, denoting the percentage of the tokens that will be burned by the dex during the trade.
    * @param {boolean} includeSubsidy - In the case of liquidity baking, a subsudy will be added per block, affecting the calcualtion. This boolean is used to control whether or not this is taken into account.
    * @returns {(number|null)} - The price impact percentage as a float value.
    */
-  function xtzToTokenPriceImpact(xtzIn, xtzPool, tokenPool, burnPercent, includeSubsidy) {
+  function xtzToTokenPriceImpact(xtzIn, xtzPool, tokenPool, feePercent, burnPercent, includeSubsidy) {
+    var expectedTokenPayout = xtzToTokenTokenOutput(xtzIn, xtzPool, tokenPool, feePercent, burnPercent, includeSubsidy)
+
     var xtzPool = xtzPool;
     if (includeSubsidy) {
       xtzPool = creditSubsidy(xtzPool);
@@ -296,7 +299,7 @@ var dexterCalculations = (function (undefined) {
     var xtzPool_ = bigInt.zero;
     var tokenPool_ = bigInt.zero;
     var burn = (1000 - Math.floor(burnPercent * 10))
-    
+
     try {
       xtzIn_ = bigInt(xtzIn);
       xtzPool_ = bigInt(xtzPool);
@@ -304,16 +307,14 @@ var dexterCalculations = (function (undefined) {
     } catch(err) {
       return null;
     };
+
     if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      var midPrice = tokenPool_ / xtzPool_;
+      var currentMidPrice = xtzPool_ / tokenPool_
+
       var xtzInNetBurn = xtzIn_.times(burn).divide(1000);
-      var tokensBought = xtzInNetBurn.times(tokenPool_).divide(xtzInNetBurn.plus(xtzPool_));
-      // if no tokens have been purchased then there is no price impact
-      if (leqZero(tokensBought)) {
-        return 0;
-      }
-      var exactQuote = midPrice * xtzIn_;
-      return (exactQuote - tokensBought) / exactQuote;
+      var postTradeMidPrice =  (xtzPool_ + xtzInNetBurn) / (tokenPool_ - expectedTokenPayout)
+
+      return Math.abs(1 - (postTradeMidPrice / currentMidPrice))
     } else {
       return null;
     };
@@ -591,11 +592,14 @@ var dexterCalculations = (function (undefined) {
    * @param {(bigInt|number|string)} tokenIn - The amount of Token the sender will sell to Dexter in tokenToXtz.
    * @param {(bigInt|number|string)} xtzPool - XTZ amount that Dexter holds. Must be greater than zero.
    * @param {(bigInt|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
+   * @param {number} feePercent - A number between 0.0 and 100, denoting the percentage fee that the dex will deduct from the amount sent.
    * @param {number} burnPercent - A number between 0.0 and 100, denoting the percentage of the tokens that will be burned by the dex during the trade.
    * @param {boolean} includeSubsidy - In the case of liquidity baking, a subsudy will be added per block, affecting the calcualtion. This boolean is used to control whether or not this is taken into account.
    * @returns {(number|null)} - The price impact percentage as a float value.
    */
-  function tokenToXtzPriceImpact(tokenIn, xtzPool, tokenPool, burnPercent, includeSubsidy) {
+  function tokenToXtzPriceImpact(tokenIn, xtzPool, tokenPool, feePercent, burnPercent, includeSubsidy) {
+    var expectedXTZPayout = tokenToXtzXtzOutput(tokenIn, xtzPool, tokenPool, feePercent, burnPercent, includeSubsidy)
+
     var xtzPool = xtzPool;
     if (includeSubsidy) {
       xtzPool = creditSubsidy(xtzPool);
@@ -613,15 +617,12 @@ var dexterCalculations = (function (undefined) {
       return null;
     };
     if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      var midPrice = xtzPool_ / tokenPool_;
-      var xtzBought = tokenIn_.times(xtzPool_).divide(tokenIn_.plus(tokenPool_));
-      var xtzBoughtNetBurn = xtzBought.times(bigInt(burn)).divide(bigInt(1000));
-      // if no tokens have been purchased then there is no price impact
-      if (leqZero(xtzBoughtNetBurn)) {
-        return 0;
-      }
-      var exactQuote = midPrice * tokenIn_;
-      return (exactQuote - xtzBoughtNetBurn) / exactQuote;
+      var currentMidPrice = xtzPool_ / tokenPool_
+
+      var tokenInNetBurn = tokenIn_.times(burn).divide(1000);
+      var postTradeMidPrice =  (xtzPool_ - expectedXTZPayout) / (tokenPool_ + tokenInNetBurn)
+
+      return Math.abs(1 - (postTradeMidPrice / currentMidPrice))
     } else {
       return null;
     };
