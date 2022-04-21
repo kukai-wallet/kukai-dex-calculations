@@ -310,11 +310,17 @@ var dexterCalculations = (function (undefined) {
 
     if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
       var currentMidPrice = xtzPool_ / tokenPool_
-
       var xtzInNetBurn = xtzIn_.times(burn).divide(1000);
       var postTradeMidPrice =  (xtzPool_ + xtzInNetBurn) / (tokenPool_ - expectedTokenPayout)
 
-      return Math.abs(1 - (postTradeMidPrice / currentMidPrice))
+      var result = Math.abs(1 - (postTradeMidPrice / currentMidPrice))
+
+      if (result < 0.00001) {
+        return 0 // avoid returning "6.71243e-17"
+      } else {
+        return result
+      }
+
     } else {
       return null;
     };
@@ -607,7 +613,6 @@ var dexterCalculations = (function (undefined) {
     var tokenIn_    = bigInt.zero;
     var xtzPool_    = bigInt.zero;
     var tokenPool_  = bigInt.zero;
-    var burn = (1000 - Math.floor(burnPercent * 10))
 
     try {
       tokenIn_    = bigInt(tokenIn);
@@ -618,11 +623,15 @@ var dexterCalculations = (function (undefined) {
     };
     if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
       var currentMidPrice = xtzPool_ / tokenPool_
+      var postTradeMidPrice =  (xtzPool_ - expectedXTZPayout) / (tokenPool_ + tokenIn_)
+      var result = Math.abs(1 - (postTradeMidPrice / currentMidPrice))
 
-      var tokenInNetBurn = tokenIn_.times(burn).divide(1000);
-      var postTradeMidPrice =  (xtzPool_ - expectedXTZPayout) / (tokenPool_ + tokenInNetBurn)
+      if (result < 0.00001) {
+        return 0 // avoid returning "6.71243e-17"
+      } else {
+        return result
+      }
 
-      return Math.abs(1 - (postTradeMidPrice / currentMidPrice))
     } else {
       return null;
     };
