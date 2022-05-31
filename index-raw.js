@@ -846,6 +846,23 @@ var dexterCalculations = (function (undefined) {
     };
   };
 
+  /**
+   * Calculate the APY users can expect, based on the current XTZ anount in the contract
+   *
+   * @param {(bigInt|number|string)} xtzPool - XTZ amount in the contract.
+   * @returns {(number|null)} The market rate as a float value.
+   */
+  function estimateAPY(xtzPool) {
+    var xtzPool_ = bigInt.zero;
+    try {
+      xtzPool_ = bigInt(xtzPool);
+    } catch(err) {
+      return null;
+    };
+
+    var annualSubsidy = BigInt( (2.5 * 2 * 60 * 24 * 365) * 1000000 )
+    return ((((xtzPool_.add(annualSubsidy) / xtzPool_) - 1) / 2) * 100)
+  }
   
   return {
     // xtzToToken    
@@ -876,6 +893,9 @@ var dexterCalculations = (function (undefined) {
     // removeLiquidity
     removeLiquidityTokenOut: removeLiquidityTokenOut,
     removeLiquidityXtzOut: removeLiquidityXtzOut,
+
+    // Misc
+    estimateAPY: estimateAPY
   };
 })();
 
