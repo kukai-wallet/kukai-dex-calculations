@@ -852,7 +852,7 @@ var dexterCalculations = (function (undefined) {
    * @param {(bigInt|number|string)} xtzPool - XTZ amount in the contract.
    * @returns {(number|null)} The market rate as a float value.
    */
-  function estimateAPY(xtzPool) {
+  function estimateLiquidityBakingAPY(xtzPool) {
     var xtzPool_ = bigInt.zero;
     try {
       xtzPool_ = bigInt(xtzPool);
@@ -895,7 +895,7 @@ var dexterCalculations = (function (undefined) {
     removeLiquidityXtzOut: removeLiquidityXtzOut,
 
     // Misc
-    estimateAPY: estimateAPY
+    estimateLiquidityBakingAPY: estimateLiquidityBakingAPY
   };
 })();
 
